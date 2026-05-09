@@ -20,4 +20,7 @@ Flight::group('/api/v1/auth', function() use ($authController) {
 
     // Ruta para hacer logout e invalidar el token
     Flight::route('POST /logout', [$authController, 'logout'])->addMiddleware([new AuthMiddleware()]);
+
+    // Ruta para refrescar el token (ahora es "pública" porque usa el refresh_token del body)
+    Flight::route('POST /refresh', [$authController, 'refreshToken']);
 });

@@ -22,7 +22,16 @@ class UserModel {
         $stmt->execute(['username' => $username]);
         return $stmt->fetch();
     }
-
+    public function findById(int $id) {
+        $stmt = $this->db->prepare("
+            SELECT u.id, u.usuario, u.contrasena, u.activo, p.nombre, p.apellidos, p.sexo 
+            FROM usuarios u
+            JOIN personas p ON u.persona_id = p.id
+            WHERE u.id = :id AND u.activo = TRUE
+        ");
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch();
+    }
     public function getUserRoles(int $userId) {
         $stmt = $this->db->prepare("
             SELECT r.nombre 
