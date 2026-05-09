@@ -1,5 +1,12 @@
 <?php
+use App\Helpers\ApiResponse;
 
-Flight::route('GET /api/v1/users/test', function() {
-    ApiResponse::success(['message' => 'Ruta de usuarios funcionando correctamente']);
-});
+use App\Controllers\UserController;
+use App\Middleware\AuthMiddleware;
+
+$userController = new UserController();
+
+Flight::group('/api/v1/users', function() use ($userController) {
+    Flight::route('GET /', [$userController, 'index']);
+    Flight::route('GET /@id', [$userController, 'show']);
+}, [new AuthMiddleware()]);

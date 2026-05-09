@@ -2,9 +2,9 @@
 // public/index.php
 
 require __DIR__ . '/../vendor/autoload.php';
-require __DIR__ . '/../app/Helpers/ApiResponse.php';
 
 use Dotenv\Dotenv;
+use App\Helpers\ApiResponse;
 
 // Cargar variables de entorno
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../');

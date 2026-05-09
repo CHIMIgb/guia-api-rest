@@ -1,4 +1,5 @@
 <?php
+namespace App\Helpers;
 
 class ApiResponse {
     public static function success($data, int $status = 200): void {

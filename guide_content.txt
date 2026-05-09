@@ -1,0 +1,618 @@
+Guía de API REST con PHP Flight
+Arquitectura MVC • JWT Auth • Buenas Prácticas REST
+Boilerplate y guía de aprendizaje para construir APIs modernas en PHP
+1. Introducción
+Este proyecto es una API base construida con PHP Flight Framework siguiendo arquitectura MVC. Su propósito es doble: servir como boilerplate reutilizable para nuevos proyectos y como guía práctica de aprendizaje sobre cómo diseñar APIs REST correctamente.
+¿Por qué PHP Flight?
+Microframework minimalista — sin magia oculta, ideal para aprender
+Enrutamiento simple y expresivo
+Sin dependencias pesadas, fácil de entender el flujo completo
+Perfecto para APIs: ligero y rápido
+Objetivos del proyecto
+Mostrar cómo estructurar correctamente una API REST
+Implementar autenticación JWT con refresh de tokens
+Demostrar el uso correcto de los métodos HTTP
+Establecer convenciones de nombramiento de endpoints
+Servir como base reutilizable para proyectos reales
+2. Arquitectura MVC
+El proyecto sigue el patrón Modelo-Vista-Controlador (MVC) adaptado para APIs REST, donde la "Vista" es sustituida por respuestas JSON estructuradas.
+Estructura de carpetas
+php-flight-rest-api-boilerplate/
+├── app/
+│   ├── Controllers/        # Lógica de cada recurso
+│   │   ├── AuthController.php
+│   │   └── UserController.php
+│   ├── Models/             # Acceso a datos / lógica de negocio
+│   │   ├── UserModel.php
+│   │   └── RefreshTokenModel.php
+│   └── Middleware/         # Autenticación, CORS, validaciones
+│       └── AuthMiddleware.php
+├── config/
+│   ├── database.php        # Configuración de BD
+│   └── jwt.php             # Claves y configuración JWT
+├── database/
+│   └── schema.sql          # Tablas: users + refresh_tokens
+├── routes/
+│   ├── auth.php            # Rutas de autenticación
+│   └── users.php           # Rutas del recurso Users
+├── public/
+│   └── index.php           # Punto de entrada de la app
+├── .env.example
+├── composer.json
+└── README.md
+Responsabilidades de cada capa
+Controller:
+ Recibe la request, valida datos de entrada, llama al Model y devuelve la respuesta JSON.
+Model:
+ Encapsula toda la lógica de negocio y el acceso a la base de datos (PDO).
+Middleware:
+ Intercepta requests antes de llegar al Controller. Valida tokens JWT, gestiona CORS, etc.
+3. Autenticación JWT
+Se implementa un sistema de autenticación completo basado en JSON Web Tokens (JWT) con soporte para refresh tokens, siguiendo las mejores prácticas de seguridad.
+Flujo de autenticación
+1. Cliente → POST /api/auth/login  { email, password }
+2. Servidor valida credenciales
+3. Servidor genera:  access_token  (15 min)  +  refresh_token  (7 días)
+4. Cliente usa access_token en el header: Authorization: Bearer <token>
+5. Al expirar → POST /api/auth/refresh  { refresh_token }
+6. Servidor genera nuevo par de tokens
+7. POST /api/auth/logout  invalida el refresh_token en BD
+Endpoints de autenticación
+Método
+Endpoint
+Auth
+Descripción
+POST
+/api/auth/login
+Público
+Iniciar sesión, obtiene tokens
+POST
+/api/auth/register
+Público
+Registrar nuevo usuario
+POST
+/api/auth/refresh
+Público
+Renovar access token expirado
+POST
+/api/auth/logout
+Auth
+Cerrar sesión e invalidar token
+GET
+/api/auth/me
+Auth
+Obtener datos del usuario actual
+Estructura del payload JWT
+{
+  "sub": 42,              // ID del usuario
+  "email": "user@mail.com",
+  "role": "admin",
+  "iat": 1700000000,      // Issued at
+  "exp": 1700000900       // Expira en 15 minutos
+}
+4. Métodos HTTP y cuándo usarlos
+Una de las confusiones más comunes en el desarrollo de APIs es el uso incorrecto de los métodos HTTP. Cada método tiene una semántica específica que debe respetarse.
+GET — Obtener recursos
+Propósito:
+ Recuperar datos. No debe modificar nada en el servidor. Es idempotente y seguro.
+GET /api/v1/users             → Lista todos los usuarios (con paginación)
+GET /api/v1/users/7           → Obtiene el usuario con ID 7
+GET /api/v1/users?role=admin&page=2   → Con filtros y paginación
+Respuesta exitosa: 200 OK
+POST — Crear recursos
+Propósito:
+ Crear un nuevo recurso. No es idempotente (cada llamada crea un recurso nuevo).
+POST /api/v1/users
+Content-Type: application/json
+{
+  "name":     "Juan Pérez",
+  "email":    "juan@mail.com",
+  "password": "secret123",
+  "role":     "editor"
+}
+Respuesta exitosa: 201 Created + Location: /api/v1/users/8
+PUT — Reemplazar recurso completo
+Propósito:
+ Reemplazar COMPLETAMENTE un recurso. Si omites un campo, se elimina. Es idempotente.
+PUT /api/v1/users/7
+// Debes enviar TODOS los campos, incluso los que no cambian
+{
+  "name":     "Juan Pérez García",
+  "email":    "juan@mail.com",
+  "password": "newpassword123",
+  "role":     "admin"
+}
+Respuesta exitosa: 200 OK
+PATCH — Actualización parcial
+Propósito:
+ Modificar SOLO los campos indicados. El recurso mantiene el resto de sus valores. Más eficiente que PUT para cambios menores.
+PATCH /api/v1/users/7
+// Solo envías los campos que quieres actualizar
+{
+  "role": "admin"
+}
+Respuesta exitosa: 200 OK
+DELETE — Eliminar recurso
+Propósito:
+ Eliminar un recurso. Es idempotente: eliminar algo ya eliminado devuelve 404, no un error grave.
+DELETE /api/v1/users/7
+// Sin body
+Respuesta exitosa: 204 No Content (sin body) o 200 OK con mensaje
+5. Nombramiento de Endpoints
+Las convenciones de nomenclatura son fundamentales para que una API sea intuitiva y predecible. Aquí están las reglas que sigue este proyecto.
+Reglas fundamentales
+Usar sustantivos, nunca verbos en la URL
+Plural para colecciones, singular no aplica en REST
+Minúsculas siempre. Usar guion medio ( - ) para separar palabras
+Los IDs van como parámetros de ruta, no query string
+Versionar la API desde el inicio: /api/v1/
+Ejemplos: correcto vs incorrecto
+❌ INCORRECTO                  ✅ CORRECTO
+──────────────────────────────────────────────────────
+/getUsers                    /api/v1/users
+/createUser                  /api/v1/users              (POST)
+/deleteUser?id=5             /api/v1/users/5            (DELETE)
+/user_list                   /api/v1/users
+/getUserById/5               /api/v1/users/5            (GET)
+/updateUserRole/5            /api/v1/users/5            (PATCH)
+/getUserPosts/5              /api/v1/users/5/posts      (GET)
+/deactivateUser/5            /api/v1/users/5/status     (PATCH)
+Recursos anidados
+Cuando un recurso depende de otro, se anida en la URL. No más de 2 niveles de anidación para mantener URLs legibles.
+GET  /api/v1/users/7/posts          → Posts del usuario 7
+GET  /api/v1/users/7/posts/15       → Post 15 del usuario 7
+POST /api/v1/users/7/posts          → Crear post para el usuario 7
+GET  /api/v1/users/7/roles          → Roles asignados al usuario 7
+// Evitar más de 2 niveles de anidación:
+❌ /api/v1/users/7/posts/15/comments/3/likes
+✅ /api/v1/comments/3/likes
+Filtrado, paginación y ordenamiento
+Estas operaciones se hacen con query parameters, nunca en la ruta:
+GET /api/v1/users?role=admin              → Filtrar por rol
+GET /api/v1/users?page=2&limit=20         → Paginar
+GET /api/v1/users?sort=created_at&order=desc  → Ordenar
+GET /api/v1/users?q=juan                  → Buscar por nombre
+GET /api/v1/users?role=admin&page=1&sort=name  → Combinar filtros
+6. Códigos de Respuesta HTTP
+Usar los códigos HTTP correctos es esencial para que los clientes de la API puedan manejar las respuestas adecuadamente.
+Código
+Estado HTTP
+Cuándo usarlo
+200
+OK
+GET exitoso, PUT/PATCH exitoso
+201
+Created
+POST que creó un recurso nuevo
+204
+No Content
+DELETE exitoso, sin body en respuesta
+400
+Bad Request
+Datos de entrada inválidos o malformados
+401
+Unauthorized
+No autenticado o token inválido/expirado
+403
+Forbidden
+Autenticado pero sin permiso para ese recurso
+404
+Not Found
+El recurso solicitado no existe
+422
+Unprocessable Entity
+Validación fallida (campos requeridos, formatos)
+429
+Too Many Requests
+Rate limiting activado
+500
+Internal Server Error
+Error inesperado del servidor
+Estructura de respuesta universal
+TODAS las respuestas de la API, sin excepción, siguen esta estructura JSON universal:
+{
+  "success": boolean,
+  "data":    object | null,
+  "error": {
+    "code":    "string",
+    "message": "string",
+    "details": any
+  }
+}
+La regla es simple: success indica el resultado; data lleva el payload en éxito; error describe el problema en fallo. Ambos coexisten en el schema pero solo uno es relevante según success.
+Respuestas exitosas (success: true)
+En caso de éxito, data contiene el recurso o colección, y error es null:
+// GET /api/v1/users/7  →  200 OK
+{
+  "success": true,
+  "data": {
+    "id":         7,
+    "name":       "Juan Pérez",
+    "email":      "juan@mail.com",
+    "role":       "admin",
+    "created_at": "2025-01-15T10:30:00Z"
+  },
+  "error": null
+}
+// GET /api/v1/users  →  200 OK (colección con paginación)
+{
+  "success": true,
+  "data": {
+    "items": [
+      { "id": 1, "name": "Ana López",  "email": "ana@mail.com",  "role": "admin" },
+      { "id": 2, "name": "Luis Gómez", "email": "luis@mail.com", "role": "editor" }
+    ],
+    "meta": { "page": 1, "total": 48, "per_page": 20, "last_page": 3 }
+  },
+  "error": null
+}
+// POST /api/v1/users  →  201 Created
+{
+  "success": true,
+  "data": {
+    "id":         8,
+    "name":       "María Torres",
+    "email":      "maria@mail.com",
+    "role":       "editor",
+    "created_at": "2025-05-08T14:20:00Z"
+  },
+  "error": null
+}
+// DELETE /api/v1/users/7  →  200 OK
+{
+  "success": true,
+  "data": { "message": "Usuario eliminado correctamente" },
+  "error": null
+}
+Respuestas de error (success: false)
+En caso de error, data es null y error describe el problema con un código legible por máquina, un mensaje legible por humano y detalles opcionales:
+// POST /api/v1/users  →  422 Unprocessable Entity (validación)
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code":    "VALIDATION_ERROR",
+    "message": "Los datos enviados contienen errores",
+    "details": {
+      "email":    ["El email ya está registrado"],
+      "password": ["Debe tener al menos 8 caracteres"]
+    }
+  }
+}
+// GET /api/v1/users/99  →  404 Not Found
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code":    "RESOURCE_NOT_FOUND",
+    "message": "El usuario con ID 99 no existe",
+    "details": null
+  }
+}
+// GET /api/v1/users  →  401 Unauthorized (token inválido)
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code":    "INVALID_TOKEN",
+    "message": "El token de acceso es inválido o ha expirado",
+    "details": null
+  }
+}
+// DELETE /api/v1/users/7  →  403 Forbidden
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code":    "FORBIDDEN",
+    "message": "No tienes permisos para eliminar este usuario",
+    "details": null
+  }
+}
+Catálogo de códigos de error recomendados
+// Autenticación
+INVALID_TOKEN          → Token inválido o expirado
+TOKEN_EXPIRED          → Token expirado específicamente
+INVALID_CREDENTIALS    → Email o contraseña incorrectos
+UNAUTHORIZED           → No autenticado
+// Autorización
+FORBIDDEN              → Sin permisos para el recurso
+// Recursos
+RESOURCE_NOT_FOUND     → El recurso solicitado no existe
+RESOURCE_ALREADY_EXISTS → Conflicto: el recurso ya existe
+// Validación
+VALIDATION_ERROR       → Datos de entrada inválidos (details con campos)
+MISSING_REQUIRED_FIELD → Campo requerido ausente
+INVALID_FORMAT         → Formato de dato incorrecto
+// Servidor
+INTERNAL_ERROR         → Error inesperado del servidor
+SERVICE_UNAVAILABLE    → Servicio temporalmente no disponible
+RATE_LIMIT_EXCEEDED    → Demasiadas peticiones
+Helper en PHP para respuestas consistentes
+Se recomienda centralizar la generación de respuestas en una clase helper para garantizar consistencia en toda la API:
+class ApiResponse {
+  public static function success($data, int $status = 200): void {
+    http_response_code($status);
+    echo json_encode([
+      "success" => true,
+      "data"    => $data,
+      "error"   => null,
+    ]);
+    exit;
+  }
+  public static function error(string $code, string $message,
+                               $details = null, int $status = 400): void {
+    http_response_code($status);
+    echo json_encode([
+      "success" => false,
+      "data"    => null,
+      "error"   => [
+        "code"    => $code,
+        "message" => $message,
+        "details" => $details,
+      ],
+    ]);
+    exit;
+  }
+}
+// Uso en un Controller:
+ApiResponse::success($user, 201);
+ApiResponse::error("RESOURCE_NOT_FOUND", "Usuario no encontrado", null, 404);
+ApiResponse::error("VALIDATION_ERROR", "Datos inválidos", $errors, 422);
+7. Tabla Completa de Endpoints
+El proyecto incluye el recurso Users como ejemplo completo, cubriendo todas las operaciones REST más los endpoints de autenticación:
+Autenticación
+Método
+Endpoint
+Auth
+Descripción
+POST
+/api/v1/auth/register
+Público
+Registrar nuevo usuario
+POST
+/api/v1/auth/login
+Público
+Iniciar sesión, obtiene access + refresh token
+POST
+/api/v1/auth/refresh
+Público
+Renovar access token con refresh token
+POST
+/api/v1/auth/logout
+Auth
+Cerrar sesión e invalidar refresh token
+GET
+/api/v1/auth/me
+Auth
+Obtener perfil del usuario autenticado
+Usuarios (recurso de ejemplo)
+Método
+Endpoint
+Auth
+Descripción
+GET
+/api/v1/users
+Auth + Admin
+Listar usuarios con paginación y filtros
+GET
+/api/v1/users/{id}
+Auth
+Obtener usuario por ID
+POST
+/api/v1/users
+Auth + Admin
+Crear nuevo usuario
+PUT
+/api/v1/users/{id}
+Auth + Admin
+Reemplazar usuario completo
+PATCH
+/api/v1/users/{id}
+Auth
+Actualizar campos del usuario
+DELETE
+/api/v1/users/{id}
+Auth + Admin
+Eliminar usuario
+GET
+/api/v1/users/{id}/posts
+Auth
+Listar posts del usuario (recurso anidado)
+PATCH
+/api/v1/users/{id}/status
+Auth + Admin
+Activar o desactivar usuario
+8. Buenas Prácticas Adicionales
+Versionado de API
+Incluir la versión en la URL desde el primer día. Esto permite evolucionar la API sin romper clientes existentes:
+/api/v1/users    → Versión actual
+/api/v2/users    → Nueva versión con cambios breaking
+Headers importantes
+Content-Type: application/json
+Authorization: Bearer <access_token>
+Accept: application/json
+X-Request-ID: uuid-para-tracking    (recomendado)
+Seguridad
+Siempre HTTPS en producción
+Tokens JWT con expiración corta (15 min access, 7 días refresh)
+Refresh tokens almacenados en BD para poder invalidarlos
+Rate limiting para prevenir abuso
+Validar y sanitizar todos los inputs
+Headers de seguridad: CORS configurado correctamente
+Documentación
+Se incluye una colección de Postman en el repositorio con todos los endpoints pre-configurados, facilitando el testing y la exploración de la API.
+9. Esquema SQL de la Base de Datos
+El archivo database/schema.sql contiene todas las tablas necesarias para que la API funcione. El diseño sigue buenas prácticas: claves foráneas, índices en columnas de búsqueda frecuente y campos de auditoría.
+Tabla: users
+Almacena los usuarios del sistema con su información de perfil, credenciales y estado.
+CREATE TABLE users (
+  id           INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+  name         VARCHAR(100)     NOT NULL,
+  email        VARCHAR(150)     NOT NULL,
+  password     VARCHAR(255)     NOT NULL,          -- bcrypt hash
+  role         ENUM('admin','editor','viewer')
+                               NOT NULL DEFAULT 'viewer',
+  status       ENUM('active','inactive')
+                               NOT NULL DEFAULT 'active',
+  created_at   TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                         ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at   TIMESTAMP            NULL DEFAULT NULL,  -- soft delete
+  PRIMARY KEY (id),
+  UNIQUE  KEY uq_users_email   (email),
+  INDEX       idx_users_role   (role),
+  INDEX       idx_users_status (status)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+Descripción de columnas — users
+id          → PK autoincremental sin signo. Se usa en todos los endpoints /{id}
+name        → Nombre completo. VARCHAR(100), requerido
+email       → Único en la tabla. Se usa como identificador en el login
+password    → Siempre almacenar el hash bcrypt, NUNCA texto plano
+role        → Nivel de acceso. Controla qué endpoints puede consumir
+status      → active | inactive. Permite desactivar sin borrar (PATCH /status)
+created_at  → Se llena automáticamente al insertar
+updated_at  → Se actualiza automáticamente en cada UPDATE
+deleted_at  → Soft delete: si tiene fecha, el usuario está eliminado lógicamente
+Tabla: refresh_tokens
+Almacena los refresh tokens activos de cada usuario. Tenerlos en BD permite invalidarlos al hacer logout o detectar uso indebido.
+CREATE TABLE refresh_tokens (
+  id           INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+  user_id      INT UNSIGNED     NOT NULL,
+  token        VARCHAR(512)     NOT NULL,          -- el refresh token JWT
+  expires_at   TIMESTAMP        NOT NULL,          -- fecha de expiración (7 días)
+  created_at   TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  revoked_at   TIMESTAMP            NULL DEFAULT NULL, -- NULL = vigente
+  PRIMARY KEY (id),
+  UNIQUE  KEY uq_refresh_token          (token(255)),
+  INDEX       idx_refresh_tokens_user   (user_id),
+  INDEX       idx_refresh_tokens_expiry (expires_at),
+  CONSTRAINT fk_refresh_tokens_user
+    FOREIGN KEY (user_id)
+    REFERENCES  users (id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+Descripción de columnas — refresh_tokens
+id          → PK autoincremental
+user_id     → FK a users.id. Si el usuario se elimina, sus tokens se borran (CASCADE)
+token       → El string del refresh token. Indexado para búsqueda rápida en /refresh
+expires_at  → Fecha límite del token. El endpoint /refresh rechaza tokens vencidos
+created_at  → Cuándo se emitió el token (útil para auditoría)
+revoked_at  → NULL = token activo. Con fecha = token invalidado por logout
+Datos de prueba (seed)
+Insertar usuarios de ejemplo para poder probar la API inmediatamente después de la instalación:
+-- Contraseña de todos los seeds: 'secret123'  (hash bcrypt cost=12)
+INSERT INTO users (name, email, password, role, status) VALUES
+  (
+    'Admin Principal',
+    'admin@example.com',
+    '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    'admin',
+    'active'
+  ),
+  (
+    'Editor Ejemplo',
+    'editor@example.com',
+    '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    'editor',
+    'active'
+  ),
+  (
+    'Viewer Ejemplo',
+    'viewer@example.com',
+    '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    'viewer',
+    'inactive'
+  );
+Permisos por rol
+La columna role define qué puede hacer cada usuario en la API:
+Endpoint
+viewer
+editor
+admin
+Notas
+GET /users
+✓
+✓
+✓
+Cualquier autenticado puede listar
+GET /users/{id}
+✓
+✓
+✓
+Ver perfil propio o ajeno
+POST /users
+✗
+✗
+✓
+Solo admin crea usuarios directamente
+PUT /users/{id}
+✗
+✓*
+✓
+* Solo su propio perfil
+PATCH /users/{id}
+✗
+✓*
+✓
+* Solo su propio perfil
+PATCH /users/{id}/status
+✗
+✗
+✓
+Activar / desactivar usuarios
+DELETE /users/{id}
+✗
+✗
+✓
+Solo admin puede eliminar
+10. Instalación y Uso
+Requisitos
+PHP 8.1 o superior
+Composer
+MySQL / MariaDB
+Servidor web (Apache / Nginx) o PHP built-in server para desarrollo
+Pasos de instalación
+# 1. Clonar el repositorio
+git clone https://github.com/tu-usuario/php-flight-rest-api-boilerplate.git
+cd php-flight-rest-api-boilerplate
+# 2. Instalar dependencias
+composer install
+# 3. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus datos de BD y secreto JWT
+# 4. Crear tablas en la BD
+mysql -u root -p nombre_bd < database/schema.sql
+# 5. Iniciar servidor de desarrollo
+php -S localhost:8080 -t public/
+Primera prueba
+# 1. Registrar usuario
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Juan","email":"juan@mail.com","password":"secret123","role":"editor"}'
+# 2. Iniciar sesión y guardar el token
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"juan@mail.com","password":"secret123"}'
+# 3. Listar usuarios (requiere token)
+curl -X GET http://localhost:8080/api/v1/users \
+  -H "Authorization: Bearer <tu_access_token>"
+# 4. Actualizar solo el rol (PATCH)
+curl -X PATCH http://localhost:8080/api/v1/users/7 \
+  -H "Authorization: Bearer <tu_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"role":"admin"}'
+Conclusión
+Este proyecto busca establecer una base sólida y bien comentada para el desarrollo de APIs REST en PHP. Cada decisión de diseño está documentada para que sirva como referencia de aprendizaje.
+Los puntos más importantes a recordar al diseñar una API REST son:
+Usar los métodos HTTP según su semántica (no solo GET y POST para todo)
+Nombrar endpoints con sustantivos en plural, sin verbos
+Devolver los códigos de estado HTTP correctos en cada situación
+Estandarizar la estructura de las respuestas JSON
+Versionar la API desde el inicio
+Documentar y testear todos los endpoints
+¡Fork el proyecto, úsalo como base y contribuye con mejoras!

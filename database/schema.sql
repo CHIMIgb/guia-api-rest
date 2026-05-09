@@ -110,6 +110,13 @@ CREATE TRIGGER trg_rol_permisos_edicion
 BEFORE UPDATE ON rol_permisos
 FOR EACH ROW EXECUTE FUNCTION actualizar_hora_edicion();
 
+CREATE TABLE lista_negra (
+  id              SERIAL PRIMARY KEY,
+  token           TEXT NOT NULL UNIQUE,
+  fecha_expiracion TIMESTAMP WITH TIME ZONE NOT NULL,
+  hora_registro   TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Datos de prueba (seeds)
 INSERT INTO roles (nombre, descripcion) VALUES
   ('admin', 'Administrador principal del sistema'),
@@ -123,9 +130,9 @@ INSERT INTO personas (nombre, apellidos, sexo) VALUES
 
 -- Contraseña para todos los seeds: 'secret123' (hash bcrypt)
 INSERT INTO usuarios (persona_id, usuario, contrasena) VALUES
-  (1, 'admin_juan', '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
-  (2, 'editor_maria', '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
-  (3, 'viewer_carlos', '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+  (1, 'admin_juan', '$2y$10$EQ.ExDHWGM6YmJajh/B8a.jk3v3dZ5fe67LAcer71mP/IjR082A9u'),
+  (2, 'editor_maria', '$2y$10$EQ.ExDHWGM6YmJajh/B8a.jk3v3dZ5fe67LAcer71mP/IjR082A9u'),
+  (3, 'viewer_carlos', '$2y$10$EQ.ExDHWGM6YmJajh/B8a.jk3v3dZ5fe67LAcer71mP/IjR082A9u');
 
 INSERT INTO usuario_roles (usuario_id, rol_id) VALUES
   (1, 1), -- Juan es Admin
