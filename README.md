@@ -66,7 +66,10 @@ Tu API ahora estará corriendo en `http://localhost:8080`.
 
 ## 🧪 Cómo probar la API (Endpoints principales)
 
-Puedes probar la API con herramientas como Postman, Insomnia o cURL.
+Para facilitar las pruebas y el aprendizaje, se ha incluido en la raíz del proyecto una colección de Postman. 
+Simplemente abre tu Postman, selecciona **"Import"** y carga el archivo `guia-api-rest.postman_collection.json`. Tendrás todos los endpoints listos para probar con variables de entorno preconfiguradas.
+
+Si prefieres probar con cURL, Insomnia u otras herramientas, estos son los endpoints principales:
 
 1. **Login:** `POST /api/v1/auth/login` (Obtienes access_token y refresh_token).
 2. **Refrescar Token:** `POST /api/v1/auth/refresh` (Envías tu refresh token vigente).

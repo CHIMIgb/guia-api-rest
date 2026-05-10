@@ -1,0 +1,336 @@
+{
+  "info": {
+    "_postman_id": "8e19ec86-4998-49b4-bd8a-df0c7ce4aeee",
+    "name": "guia-api-rest",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39439580",
+    "_collection_link": "https://go.postman.co/collection/39439580-8e19ec86-4998-49b4-bd8a-df0c7ce4aeee?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"usuario\": \"viewer_carlos\",\r\n    \"contrasena\": \"secret123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validar token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/validate",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "validate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0aaaeXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsInVzZXIiOnsiaWQiOjEsInVzdWFyaW8iOiJhZG1pbl9qdWFuIiwibm9tYnJlIjoiSnVhbiIsImFwZWxsaWRvcyI6IlBcdTAwZTlyZXoiLCJyb2xlcyI6WyJhZG1pbiJdfSwiaWF0IjoxNzc4MzU2ODI4LCJleHAiOjE3NzgzNjA0Mjh9.h1eiZasO24SchlOrNuMFBZ_wDu3eL_JW74vU4LC8Fyo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"usuario\": \"viewer_carlos\",\r\n    \"contrasena\": \"secret123\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/auth/logout",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJ0aaaeXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsInVzZXIiOnsiaWQiOjEsInVzdWFyaW8iOiJhZG1pbl9qdWFuIiwibm9tYnJlIjoiSnVhbiIsImFwZWxsaWRvcyI6IlBcdTAwZTlyZXoiLCJyb2xlcyI6WyJhZG1pbiJdfSwiaWF0IjoxNzc4MzU2ODI4LCJleHAiOjE3NzgzNjA0Mjh9.h1eiZasO24SchlOrNuMFBZ_wDu3eL_JW74vU4LC8Fyo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"usuario\": \"viewer_carlos\",\r\n    \"contrasena\": \"secret123\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/auth/refresh",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "Obtener usuarios",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "Crear usuarios",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Editar usuarios",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"success\": true,\r\n    \"data\": {\r\n        \"id\": 7,\r\n        \"usuario\": \"nuevo_usuario_2\",\r\n        \"contrasena\": \"$2y$10$JjwHTK/oKDvhydRnuQ2nleDXZoW8/i0pv6AWb0UG/CEEsK4L0M84S\",\r\n        \"activo\": true,\r\n        \"nombre\": \"Carlos\",\r\n        \"apellidos\": \"López\",\r\n        \"sexo\": \"Masculino\",\r\n        \"roles\": [\r\n            \"editor\"\r\n        ]\r\n    },\r\n    \"error\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/users/8",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "8"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Editar usuarios parcialmente",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"success\": true,\r\n    \"data\": {\r\n        \"id\": 7,\r\n        \"usuario\": \"nuevo_usuario_2\",\r\n        \"contrasena\": \"$2y$10$JjwHTK/oKDvhydRnuQ2nleDXZoW8/i0pv6AWb0UG/CEEsK4L0M84S\",\r\n        \"activo\": true,\r\n        \"nombre\": \"Carlos\",\r\n        \"apellidos\": \"López\",\r\n        \"sexo\": \"Masculino\",\r\n        \"roles\": [\r\n            \"editor\"\r\n        ]\r\n    },\r\n    \"error\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/users/8",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "8"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reactivar usuarios",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"success\": true,\r\n    \"data\": {\r\n        \"id\": 7,\r\n        \"usuario\": \"nuevo_usuario_2\",\r\n        \"contrasena\": \"$2y$10$JjwHTK/oKDvhydRnuQ2nleDXZoW8/i0pv6AWb0UG/CEEsK4L0M84S\",\r\n        \"activo\": true,\r\n        \"nombre\": \"Carlos\",\r\n        \"apellidos\": \"López\",\r\n        \"sexo\": \"Masculino\",\r\n        \"roles\": [\r\n            \"editor\"\r\n        ]\r\n    },\r\n    \"error\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/users/8/status",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "8",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar usuarios (soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/users/89",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "89"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ejemplo interceptor",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/v1/auth/forzar-error",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "forzar-error"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
