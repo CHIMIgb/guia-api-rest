@@ -109,19 +109,15 @@ class UserController {
             ApiResponse::error("RESOURCE_ALREADY_EXISTS", "El nombre de usuario ya está registrado", null, 409);
         }
 
-        try {
-            $newId = $userModel->create($data);
-            $newUser = $userModel->findById($newId);
-            $newUser['roles'] = $userModel->getUserRoles($newId);
-            
-            // Eliminar datos sensibles o innecesarios de la respuesta
-            unset($newUser['contrasena']);
-            unset($newUser['id']);
+        $newId = $userModel->create($data);
+        $newUser = $userModel->findById($newId);
+        $newUser['roles'] = $userModel->getUserRoles($newId);
+        
+        // Eliminar datos sensibles o innecesarios de la respuesta
+        unset($newUser['contrasena']);
+        unset($newUser['id']);
 
-            ApiResponse::success($newUser, 201);
-        } catch (\Exception $e) {
-            ApiResponse::error("INTERNAL_ERROR", "Error al crear el usuario", $e->getMessage(), 500);
-        }
+        ApiResponse::success($newUser, 201);
     }
 
     public function update(int $id) {
@@ -156,17 +152,13 @@ class UserController {
             }
         }
 
-        try {
-            $userModel->update($id, $data);
-            $updatedUser = $userModel->findById($id);
-            $updatedUser['roles'] = $userModel->getUserRoles($id);
-            
-            unset($updatedUser['contrasena']);
-            
-            ApiResponse::success($updatedUser);
-        } catch (\Exception $e) {
-            ApiResponse::error("INTERNAL_ERROR", "Error al actualizar el usuario", $e->getMessage(), 500);
-        }
+        $userModel->update($id, $data);
+        $updatedUser = $userModel->findById($id);
+        $updatedUser['roles'] = $userModel->getUserRoles($id);
+        
+        unset($updatedUser['contrasena']);
+        
+        ApiResponse::success($updatedUser);
     }
 
     public function updateStatus(int $id) {
@@ -182,12 +174,8 @@ class UserController {
             ApiResponse::error("RESOURCE_NOT_FOUND", "El usuario no existe", null, 404);
         }
 
-        try {
-            $userModel->updateStatus($id, (bool) $data['activo']);
-            ApiResponse::success(["message" => "Estado actualizado correctamente"]);
-        } catch (\Exception $e) {
-            ApiResponse::error("INTERNAL_ERROR", "Error al cambiar el estado del usuario", $e->getMessage(), 500);
-        }
+        $userModel->updateStatus($id, (bool) $data['activo']);
+        ApiResponse::success(["message" => "Estado actualizado correctamente"]);
     }
 
     public function delete(int $id) {
@@ -198,11 +186,7 @@ class UserController {
             ApiResponse::error("RESOURCE_NOT_FOUND", "El usuario no existe", null, 404);
         }
 
-        try {
-            $userModel->delete($id);
-            ApiResponse::success(["message" => "Usuario eliminado correctamente"]);
-        } catch (\Exception $e) {
-            ApiResponse::error("INTERNAL_ERROR", "Error al eliminar el usuario", $e->getMessage(), 500);
-        }
+        $userModel->delete($id);
+        ApiResponse::success(["message" => "Usuario eliminado correctamente"]);
     }
 }

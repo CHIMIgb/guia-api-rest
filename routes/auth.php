@@ -5,8 +5,9 @@ use App\Controllers\AuthController;
 use App\Middleware\AuthMiddleware;
 
 $authController = new AuthController();
+$apiPrefix = $_ENV['API_PREFIX'] ?? '/api/v1';
 
-Flight::group('/api/v1/auth', function() use ($authController) {
+Flight::group($apiPrefix . '/auth', function() use ($authController) {
     Flight::route('POST /login', [$authController, 'login']);
     
     // Ruta protegida de prueba para verificar AuthMiddleware
@@ -23,4 +24,9 @@ Flight::group('/api/v1/auth', function() use ($authController) {
 
     // Ruta para refrescar el token (ahora es "pública" porque usa el refresh_token del body)
     Flight::route('POST /refresh', [$authController, 'refreshToken']);
+
+    // Ruta temporal para probar el interceptor de errores
+    Flight::route('GET /forzar-error', function() {
+        throw new \PDOException("Mensaje técnico feo de SQL que el usuario no debe ver", 23505);
+    });
 });

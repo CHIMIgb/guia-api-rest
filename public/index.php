@@ -13,14 +13,8 @@ $dotenv->load();
 // Configurar conexión a BD
 require __DIR__ . '/../config/database.php';
 
-// Configuración global de Flight
-Flight::map('notFound', function() {
-    ApiResponse::error('RESOURCE_NOT_FOUND', 'Ruta no encontrada', null, 404);
-});
-
-Flight::map('error', function(\Throwable $ex) {
-    ApiResponse::error('INTERNAL_ERROR', 'Error interno del servidor', $ex->getMessage(), 500);
-});
+// Configuración global de Flight: Manejo de Errores e Interceptor Universal
+\App\Helpers\ErrorHandler::register();
 
 // Middleware Global (CORS y cabeceras JSON)
 Flight::before('start', function() {

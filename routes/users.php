@@ -5,8 +5,9 @@ use App\Controllers\UserController;
 use App\Middleware\AuthMiddleware;
 
 $userController = new UserController();
+$apiPrefix = $_ENV['API_PREFIX'] ?? '/api/v1';
 
-Flight::group('/api/v1/users', function() use ($userController) {
+Flight::group($apiPrefix . '/users', function() use ($userController) {
     Flight::route('GET /', [$userController, 'index']);
     Flight::route('GET /@id:[0-9]+', [$userController, 'show']);
     Flight::route('POST /', [$userController, 'create']);
