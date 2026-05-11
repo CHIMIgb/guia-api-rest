@@ -19,6 +19,11 @@ class UserController {
         ");
         $users = $stmt->fetchAll();
         
+        $userModel = new UserModel();
+        foreach ($users as &$user) {
+            $user['roles'] = $userModel->getUserRoles($user['id']);
+        }
+        
         ApiResponse::success(['items' => $users]);
     }
     
