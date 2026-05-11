@@ -5,14 +5,17 @@ namespace App\Models;
 use PDO;
 use Flight;
 
-class UserModel {
+class UserModel
+{
     private PDO $db;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->db = Flight::get('db');
     }
 
-    public function findByUsername(string $username) {
+    public function findByUsername(string $username)
+    {
         $stmt = $this->db->prepare("
             SELECT u.id, u.usuario, u.contrasena, u.activo, p.nombre, p.apellidos, p.sexo 
             FROM usuarios u
@@ -22,18 +25,8 @@ class UserModel {
         $stmt->execute(['username' => $username]);
         return $stmt->fetch();
     }
-    public function findById(int $id) {
-        $stmt = $this->db->prepare("
-            SELECT u.id, u.usuario, u.contrasena, u.activo, p.nombre, p.apellidos, p.sexo 
-            FROM usuarios u
-            JOIN personas p ON u.persona_id = p.id
-            WHERE u.id = :id AND u.activo = TRUE
-        ");
-        $stmt->execute(['id' => $id]);
-        return $stmt->fetch();
-    }
-    
-    public function findAnyById(int $id) {
+    public function findById(int $id)
+    {
         $stmt = $this->db->prepare("
             SELECT u.id, u.usuario, u.contrasena, u.activo, p.nombre, p.apellidos, p.sexo 
             FROM usuarios u
@@ -43,7 +36,20 @@ class UserModel {
         $stmt->execute(['id' => $id]);
         return $stmt->fetch();
     }
-    public function getUserRoles(int $userId) {
+
+    public function findAnyById(int $id)
+    {
+        $stmt = $this->db->prepare("
+            SELECT u.id, u.usuario, u.contrasena, u.activo, p.nombre, p.apellidos, p.sexo 
+            FROM usuarios u
+            JOIN personas p ON u.persona_id = p.id
+            WHERE u.id = :id
+        ");
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch();
+    }
+    public function getUserRoles(int $userId)
+    {
         $stmt = $this->db->prepare("
             SELECT r.nombre 
             FROM roles r
@@ -54,13 +60,15 @@ class UserModel {
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public function roleExists(int $roleId) {
+    public function roleExists(int $roleId)
+    {
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM roles WHERE id = :id");
         $stmt->execute(['id' => $roleId]);
         return $stmt->fetchColumn() > 0;
     }
 
-    public function create(array $data) {
+    public function create(array $data)
+    {
         $this->db->beginTransaction();
         try {
             // Insertar persona
@@ -98,9 +106,11 @@ class UserModel {
         }
     }
 
-    public function update(int $id, array $data) {
+    public function update(int $id, array $data)
+    {
         $user = $this->findById($id);
-        if (!$user) return false;
+        if (!$user)
+            return false;
 
         $this->db->beginTransaction();
         try {
@@ -117,17 +127,17 @@ class UserModel {
             if (isset($data['usuario']) || isset($data['contrasena'])) {
                 $updates = [];
                 $params = ['id' => $id];
-                
+
                 if (isset($data['usuario'])) {
                     $updates[] = "usuario = :usuario";
                     $params['usuario'] = $data['usuario'];
                 }
-                
+
                 if (isset($data['contrasena'])) {
                     $updates[] = "contrasena = :contrasena";
                     $params['contrasena'] = password_hash($data['contrasena'], PASSWORD_BCRYPT);
                 }
-                
+
                 $sql = "UPDATE usuarios SET " . implode(', ', $updates) . " WHERE id = :id";
                 $stmtUsuario = $this->db->prepare($sql);
                 $stmtUsuario->execute($params);
@@ -138,7 +148,7 @@ class UserModel {
                 // Borrar roles anteriores y poner el nuevo (simplificado)
                 $this->db->prepare("DELETE FROM usuario_roles WHERE usuario_id = :id")->execute(['id' => $id]);
                 $this->db->prepare("INSERT INTO usuario_roles (usuario_id, rol_id) VALUES (:usuario_id, :rol_id)")
-                         ->execute(['usuario_id' => $id, 'rol_id' => $data['rol_id']]);
+                    ->execute(['usuario_id' => $id, 'rol_id' => $data['rol_id']]);
             }
 
             $this->db->commit();
@@ -149,17 +159,18 @@ class UserModel {
         }
     }
 
-    public function updateStatus(int $id, bool $activo) {
+    public function updateStatus(int $id, bool $activo)
+    {
         $this->db->beginTransaction();
         try {
             $val = $activo ? 'true' : 'false';
-            
+
             $stmt1 = $this->db->prepare("UPDATE usuarios SET activo = :activo WHERE id = :id");
             $stmt1->execute(['activo' => $val, 'id' => $id]);
-            
+
             $stmt2 = $this->db->prepare("UPDATE personas SET activo = :activo WHERE id = (SELECT persona_id FROM usuarios WHERE id = :id)");
             $stmt2->execute(['activo' => $val, 'id' => $id]);
-            
+
             $this->db->commit();
             return true;
         } catch (\Exception $e) {
@@ -168,16 +179,17 @@ class UserModel {
         }
     }
 
-    public function delete(int $id) {
+    public function delete(int $id)
+    {
         // Soft delete: no borramos de la BD, solo desactivamos el usuario y su persona.
         $this->db->beginTransaction();
         try {
             $stmt1 = $this->db->prepare("UPDATE usuarios SET activo = false WHERE id = :id");
             $stmt1->execute(['id' => $id]);
-            
+
             $stmt2 = $this->db->prepare("UPDATE personas SET activo = false WHERE id = (SELECT persona_id FROM usuarios WHERE id = :id)");
             $stmt2->execute(['id' => $id]);
-            
+
             $this->db->commit();
             return true;
         } catch (\Exception $e) {

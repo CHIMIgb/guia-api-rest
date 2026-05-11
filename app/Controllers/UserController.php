@@ -15,7 +15,6 @@ class UserController {
             SELECT u.id, u.usuario, u.activo, p.nombre, p.apellidos, p.sexo 
             FROM usuarios u
             JOIN personas p ON u.persona_id = p.id
-            WHERE u.activo = TRUE
         ");
         $users = $stmt->fetchAll();
         
